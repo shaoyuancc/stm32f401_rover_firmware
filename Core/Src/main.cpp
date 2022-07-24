@@ -25,6 +25,7 @@
 #include "usbd_cdc_if.h"
 #include "string.h"
 #include "l298n_motor.hpp"
+#include "gpio_output_device.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -99,6 +100,10 @@ int main(void)
   MX_TIM2_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
+
+  GpioOutputDevice led = GpioOutputDevice(
+                            LED_GPIO_Port, LED_Pin, ActiveLow);
+
   Motor motor_right = Motor(M1_L1_GPIO_Port, M1_L1_Pin,
                             M1_L2_GPIO_Port, M1_L2_Pin,
                             htim2, TIM_CHANNEL_3, true);
@@ -110,18 +115,6 @@ int main(void)
   motor_right.activate();
   motor_left.activate();
 
-//  // Set duty cycle for PWM motor pins
-//	TIM2->CCR1 = 70; // Right motor
-//	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
-//	TIM2->CCR3 = 70; // Left motor
-//	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
-//	// Set motor output pins
-//	// Left motor
-//	HAL_GPIO_WritePin(M1_L1_GPIO_Port, M1_L1_Pin, GPIO_PIN_SET);
-//	HAL_GPIO_WritePin(M1_L2_GPIO_Port, M1_L2_Pin, GPIO_PIN_RESET);
-//	// Right motor
-//	HAL_GPIO_WritePin(M2_L1_GPIO_Port, M2_L1_Pin, GPIO_PIN_SET);
-//	HAL_GPIO_WritePin(M2_L2_GPIO_Port, M2_L2_Pin, GPIO_PIN_RESET);
 
 	// Start encoders
 	// Right motor
@@ -133,12 +126,12 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+    led.on();
     motor_right.spin(100);
     motor_left.spin(100);
     HAL_Delay(1000);
 
-    HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+    led.off();
     motor_right.spin(70);
     motor_left.spin(70);
     HAL_Delay(2000);
