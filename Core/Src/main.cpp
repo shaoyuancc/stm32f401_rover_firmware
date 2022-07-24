@@ -62,7 +62,7 @@ static void MX_TIM2_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-char *data = "Hello from device\n";
+const char *DATA = "Hello from device\n";
 uint8_t buffer[64];
 /* USER CODE END 0 */
 

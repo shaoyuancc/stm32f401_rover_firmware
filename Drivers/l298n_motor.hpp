@@ -10,12 +10,11 @@
 
 class Motor {
   private:
-
-    uint16_t in_a_pin_;
     GPIO_TypeDef* p_in_a_gpio_port_;
+    uint16_t in_a_pin_;
 
-    uint16_t in_b_pin_;
     GPIO_TypeDef* p_in_b_gpio_port_;
+    uint16_t in_b_pin_;
 
     TIM_HandleTypeDef timer_handle_;
     uint32_t timer_channel_;
