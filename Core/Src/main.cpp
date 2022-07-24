@@ -17,13 +17,14 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
+#include <main.hpp>
 #include "usb_device.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "usbd_cdc_if.h"
 #include "string.h"
+#include "l298n_motor.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -98,15 +99,57 @@ int main(void)
   MX_TIM2_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
+  Motor motor_right = Motor(M1_L1_GPIO_Port, M1_L1_Pin,
+                            M1_L2_GPIO_Port, M1_L2_Pin,
+                            htim2, TIM_CHANNEL_3, true);
 
+  Motor motor_left =  Motor(M2_L1_GPIO_Port, M2_L1_Pin,
+                            M2_L2_GPIO_Port, M2_L2_Pin,
+                            htim2, TIM_CHANNEL_1, true);
+
+  motor_right.activate();
+  motor_left.activate();
+
+//  // Set duty cycle for PWM motor pins
+//	TIM2->CCR1 = 70; // Right motor
+//	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
+//	TIM2->CCR3 = 70; // Left motor
+//	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
+//	// Set motor output pins
+//	// Left motor
+//	HAL_GPIO_WritePin(M1_L1_GPIO_Port, M1_L1_Pin, GPIO_PIN_SET);
+//	HAL_GPIO_WritePin(M1_L2_GPIO_Port, M1_L2_Pin, GPIO_PIN_RESET);
+//	// Right motor
+//	HAL_GPIO_WritePin(M2_L1_GPIO_Port, M2_L1_Pin, GPIO_PIN_SET);
+//	HAL_GPIO_WritePin(M2_L2_GPIO_Port, M2_L2_Pin, GPIO_PIN_RESET);
+
+	// Start encoders
+	// Right motor
+//  HAL_TIM_Encoder_Start_IT(&htim3, TIM_CHANNEL_ALL);
+//  HAL_TIM_Encoder_Start_IT(&htim4, TIM_CHANNEL_ALL);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  CDC_Transmit_FS((uint8_t *) data, strlen(data));
-	  HAL_Delay(1000);
+    HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+    motor_right.spin(100);
+    motor_left.spin(100);
+    HAL_Delay(1000);
+
+    HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+    motor_right.spin(70);
+    motor_left.spin(70);
+    HAL_Delay(2000);
+
+    motor_right.spin(-70);
+    motor_left.spin(-70);
+    HAL_Delay(2000);
+
+    motor_right.brake();
+    motor_left.brake();
+    HAL_Delay(3000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -179,9 +222,9 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 0;
+  htim2.Init.Prescaler = 84-1;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 4294967295;
+  htim2.Init.Period = 100-1;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
@@ -330,12 +373,23 @@ static void MX_GPIO_Init(void)
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, M1_L1_Pin|M1_L2_Pin|M2_L1_Pin|M2_L2_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : LED_Pin */
+  GPIO_InitStruct.Pin = LED_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : M1_L1_Pin M1_L2_Pin M2_L1_Pin M2_L2_Pin */
   GPIO_InitStruct.Pin = M1_L1_Pin|M1_L2_Pin|M2_L1_Pin|M2_L2_Pin;
