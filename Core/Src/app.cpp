@@ -7,21 +7,26 @@
 #include "main.h"
 #include "string.h"
 #include "stdio.h"
+
+#include "rover_config.h"
 #include "app.hpp"
 #include "l298n_motor.hpp"
 #include "gpio_output_device.hpp"
 #include "encoder.hpp"
+#include "pid.hpp"
+
 
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim4;
 
-const uint32_t ENCODER_COUNTS_PER_REVOLUTION = 1441;
 const char *DATA = "Hello from device\n";
 uint8_t usb_buffer[64];
 
 int32_t position = 0;
-double rpm = 0.0;
+double current_rpm = 0.0;
+double pid_val = 0.0;
+double target_rpm = 0;
 
 void start_app(){
 
@@ -36,32 +41,36 @@ void start_app(){
   GpioOutputDevice led = GpioOutputDevice(
                             LED_GPIO_Port, LED_Pin, ActiveLow);
 
-  Encoder encoder_right = Encoder(htim3, ENCODER_COUNTS_PER_REVOLUTION);
+  Encoder encoder_right = Encoder(htim3, COUNTS_PER_REV);
+
+  Pid pid_right = Pid(PWM_MIN, PWM_MAX, K_P, K_I, K_D);
 
   motor_right.brake();
+
+
 //  motor_right.spin(70);
 
   uint32_t i = 0;
 
   while (1)
     {
-//      if (i == 0) {
-//        led.on();
-//        encoder_right.reset();
-//        motor_right.spin(100);
-//      } else if (i == 100) {
-//        led.off();
-//        encoder_right.reset();
-//        motor_right.spin(-100);
-//      }
+      if (i == 0) {
+        led.on();
+        target_rpm = 25.0;
+      } else if (i == 100) {
+        led.off();
+        target_rpm = -25.0;
+      }
 
       position = encoder_right.get_position();
-      rpm = encoder_right.get_rpm();
+      current_rpm = encoder_right.get_rpm();
+      pid_val = pid_right.compute(target_rpm, current_rpm);
+      motor_right.spin(pid_val);
       HAL_Delay(100);
 
-//      i ++;
-//      if (i > 200)
-//        i = 0;
+      i ++;
+      if (i > 200)
+        i = 0;
     }
 }
 

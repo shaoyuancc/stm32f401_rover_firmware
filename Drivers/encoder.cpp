@@ -40,6 +40,10 @@ double Encoder::get_rpm(){
   uint32_t curr_count = __HAL_TIM_GET_COUNTER(&timer_handle_) / 4;
   uint32_t curr_time_millis = HAL_GetTick();
   uint32_t delta_time_millis = curr_time_millis - prev_time_millis_;
+
+  if (delta_time_millis == 0)
+    return 0.0;
+
   double delta_time_mins = (double) delta_time_millis / 60000;
 
   // Account for possibility of wrap around
