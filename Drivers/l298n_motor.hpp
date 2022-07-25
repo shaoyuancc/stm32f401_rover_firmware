@@ -29,6 +29,9 @@ class Motor {
   public:
     Motor() = delete; // Delete default class constructor
 
+    // Constructor
+    // The input pins and timer for pwm need to be initialized externally.
+    // This constructor also activates pwm for the motor so it can be used immediately.
     Motor(GPIO_TypeDef* p_in_a_gpio_port, uint16_t in_a_pin,
           GPIO_TypeDef* p_in_b_gpio_port, uint16_t in_b_pin,
           TIM_HandleTypeDef timer_handle, uint32_t timer_channel,
@@ -39,7 +42,9 @@ class Motor {
             in_b_pin_(in_b_pin),
             timer_handle_(timer_handle),
             timer_channel_(timer_channel),
-            invert_(invert) {}
+            invert_(invert) {
+      activate();
+    }
 
     ~Motor(){
       deactivate();

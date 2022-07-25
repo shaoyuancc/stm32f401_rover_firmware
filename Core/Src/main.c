@@ -17,15 +17,12 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-#include <main.hpp>
+#include "main.h"
 #include "usb_device.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "usbd_cdc_if.h"
-#include "string.h"
-#include "l298n_motor.hpp"
-#include "gpio_output_device.hpp"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -63,8 +60,7 @@ static void MX_TIM2_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-const char *DATA = "Hello from device\n";
-uint8_t buffer[64];
+
 /* USER CODE END 0 */
 
 /**
@@ -100,49 +96,13 @@ int main(void)
   MX_TIM2_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
-
-  GpioOutputDevice led = GpioOutputDevice(
-                            LED_GPIO_Port, LED_Pin, ActiveLow);
-
-  Motor motor_right = Motor(M1_L1_GPIO_Port, M1_L1_Pin,
-                            M1_L2_GPIO_Port, M1_L2_Pin,
-                            htim2, TIM_CHANNEL_3, true);
-
-  Motor motor_left =  Motor(M2_L1_GPIO_Port, M2_L1_Pin,
-                            M2_L2_GPIO_Port, M2_L2_Pin,
-                            htim2, TIM_CHANNEL_1, true);
-
-  motor_right.activate();
-  motor_left.activate();
-
-
-	// Start encoders
-	// Right motor
-//  HAL_TIM_Encoder_Start_IT(&htim3, TIM_CHANNEL_ALL);
-//  HAL_TIM_Encoder_Start_IT(&htim4, TIM_CHANNEL_ALL);
+  start_app();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    led.on();
-    motor_right.spin(100);
-    motor_left.spin(100);
-    HAL_Delay(1000);
-
-    led.off();
-    motor_right.spin(70);
-    motor_left.spin(70);
-    HAL_Delay(2000);
-
-    motor_right.spin(-70);
-    motor_left.spin(-70);
-    HAL_Delay(2000);
-
-    motor_right.brake();
-    motor_left.brake();
-    HAL_Delay(3000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
