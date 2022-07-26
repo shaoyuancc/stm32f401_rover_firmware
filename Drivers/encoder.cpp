@@ -32,7 +32,8 @@ void Encoder::deactivate(){
 }
 
 int32_t Encoder::get_position(){
-  return (int32_t) (__HAL_TIM_GET_COUNTER(&timer_handle_) / 4);
+  int32_t pos = (int32_t) (__HAL_TIM_GET_COUNTER(&timer_handle_) / 4);
+  return invert_ ? -pos : pos;
 }
 
 // Gets rpm of the encoder based on the difference in count and time since the last time
@@ -71,7 +72,7 @@ double Encoder::get_rpm(){
   prev_time_millis_ = curr_time_millis;
   prev_count_ = curr_count;
 
-  return rpm;
+  return invert_? -rpm : rpm;
 }
 
 double Encoder::get_rad_per_sec(){

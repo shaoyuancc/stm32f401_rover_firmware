@@ -31,12 +31,14 @@ void Motor::reverse(uint16_t pwm){
 void Motor::activate(){
   brake();
   HAL_TIM_PWM_Start(&timer_handle_, timer_channel_);
+  is_active_ = true;
 }
 
 // Stops the PWM necessary for the motor to run.
 void Motor::deactivate(){
   brake();
   HAL_TIM_PWM_Stop(&timer_handle_, timer_channel_);
+  is_active_ = false;
 }
 
 // Spin motor in direction dependent on sign (+/-) of pwm,

@@ -11,8 +11,8 @@
 
 class Pid {
   private:
-    double min_val_;
-    double max_val_;
+    double abs_min_val_;
+    double abs_max_val_;
     double kp_;
     double ki_;
     double kd_;
@@ -20,19 +20,20 @@ class Pid {
     double derivative_;
     double prev_error_;
 
-    void reset();
-
   public:
     Pid() = delete;
 
-    Pid(double min_val, double max_val, double kp, double ki, double kd):
-      min_val_(min_val),
-      max_val_(max_val),
+    Pid(double abs_min_val, double abs_max_val,
+        double kp, double ki, double kd):
+      abs_min_val_(abs_min_val),
+      abs_max_val_(abs_max_val),
       kp_(kp),
       ki_(ki),
       kd_(kd) {
       reset();
     }
+
+    void reset();
 
     double compute(double target, double measured);
 

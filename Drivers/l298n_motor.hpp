@@ -8,6 +8,8 @@
 #ifndef L298N_MOTOR_HPP_
 #define L298N_MOTOR_HPP_
 
+#include "stm32f4xx_hal.h"
+
 class Motor {
   private:
     GPIO_TypeDef* p_in_a_gpio_port_;

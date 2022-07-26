@@ -13,7 +13,13 @@
 extern "C" {
 #endif
 
-  void start_app();
+//#include "l298n_motor.hpp"
+//#include "encoder.hpp"
+//#include "pid.hpp"
+
+void start_app();
+
+void stop_and_reset_motors();
 
 #ifdef __cplusplus
 }
