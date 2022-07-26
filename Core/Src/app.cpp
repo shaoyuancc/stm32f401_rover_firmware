@@ -24,9 +24,9 @@ const char *DATA = "Hello from device\n";
 uint8_t usb_buffer[64];
 
 int32_t position = 0;
-double current_rpm = 0.0;
+double current_rad_per_sec = 0.0;
+double target_rad_per_sec = 0.0;
 double pid_val = 0.0;
-double target_rpm = 0;
 
 void start_app(){
 
@@ -47,24 +47,21 @@ void start_app(){
 
   motor_right.brake();
 
-
-//  motor_right.spin(70);
-
   uint32_t i = 0;
 
   while (1)
     {
       if (i == 0) {
         led.on();
-        target_rpm = 25.0;
+        target_rad_per_sec = 3.5;
       } else if (i == 100) {
         led.off();
-        target_rpm = -25.0;
+        target_rad_per_sec = -3.5;
       }
 
       position = encoder_right.get_position();
-      current_rpm = encoder_right.get_rpm();
-      pid_val = pid_right.compute(target_rpm, current_rpm);
+      current_rad_per_sec = encoder_right.get_rad_per_sec();
+      pid_val = pid_right.compute(target_rad_per_sec, current_rad_per_sec);
       motor_right.spin(pid_val);
       HAL_Delay(100);
 

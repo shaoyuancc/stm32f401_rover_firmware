@@ -9,6 +9,9 @@
 #include <stdlib.h>
 #include "encoder.hpp"
 
+#define _USE_MATH_DEFINES // for C++
+#include <cmath>
+
 // Starts the timer peripheral in encoder mode.
 // Note that initialization must be done before this and is not handled by the driver.
 void Encoder::activate(){
@@ -69,6 +72,12 @@ double Encoder::get_rpm(){
   prev_count_ = curr_count;
 
   return rpm;
+}
+
+double Encoder::get_rad_per_sec(){
+  double rpm = get_rpm();
+  double rad_per_sec = (rpm * 2 * M_PI) / 60;
+  return rad_per_sec;
 }
 
 void Encoder::reset(){

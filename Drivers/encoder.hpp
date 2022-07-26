@@ -46,6 +46,7 @@ class Encoder {
     void deactivate();
     int32_t get_position();
     double get_rpm();
+    double get_rad_per_sec();
     void reset();
 };
 

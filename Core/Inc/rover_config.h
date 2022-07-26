@@ -8,9 +8,15 @@
 #ifndef INC_ROVER_CONFIG_H_
 #define INC_ROVER_CONFIG_H_
 
-#define K_P 0.6                             // P constant
-#define K_I 0.8                             // I constant
-#define K_D 0.5                             // D constant
+// For RPM
+//#define K_P 0.6                             // P constant
+//#define K_I 0.8                             // I constant
+//#define K_D 0.5                             // D constant
+
+// For Rad Per Sec
+#define K_P 6                            // P constant
+#define K_I 8                             // I constant
+#define K_D 5                             // D constant
 
 #define MOTOR_MAX_RPM 40                   // motor's max RPM
 #define MAX_RPM_RATIO 0.90                  // max RPM allowed for each MAX_RPM_ALLOWED = MOTOR_MAX_RPM * MAX_RPM_RATIO
