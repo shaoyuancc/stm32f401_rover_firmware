@@ -11,20 +11,20 @@
 
 class Pid {
   private:
-    double abs_min_val_;
-    double abs_max_val_;
-    double kp_;
-    double ki_;
-    double kd_;
-    double integral_;
-    double derivative_;
-    double prev_error_;
+    float abs_min_val_;
+    float abs_max_val_;
+    float kp_;
+    float ki_;
+    float kd_;
+    float integral_;
+    float derivative_;
+    float prev_error_;
 
   public:
     Pid() = delete;
 
-    Pid(double abs_min_val, double abs_max_val,
-        double kp, double ki, double kd):
+    Pid(float abs_min_val, float abs_max_val,
+        float kp, float ki, float kd):
       abs_min_val_(abs_min_val),
       abs_max_val_(abs_max_val),
       kp_(kp),
@@ -35,9 +35,9 @@ class Pid {
 
     void reset();
 
-    double compute(double target, double measured);
+    float compute(float target, float measured);
 
-    void update_constants(double kp, double ki, double kd);
+    void update_constants(float kp, float ki, float kd);
 };
 
 

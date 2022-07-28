@@ -11,6 +11,14 @@
 #include "l298n_motor.hpp"
 #include "encoder.hpp"
 #include "pid.hpp"
+#include "kinematics.hpp"
+
+enum MotorControlMode : uint8_t{
+  Stopped = 0,
+  Pwm,
+  Rpm,
+  Velocity
+};
 
 struct RoverResources{
   Motor motor_left;
@@ -19,14 +27,14 @@ struct RoverResources{
   Encoder encoder_right;
   Pid pid_left;
   Pid pid_right;
+  Kinematics kinematics;
 };
 
 struct RoverState{
-  double target_rad_per_sec_left;
-  double target_rad_per_sec_right;
-  bool enable_pid;
-  bool is_moving;
+  Kinematics::Rpms target_rpms;
+  MotorControlMode motor_control_mode;
   uint32_t last_motor_command_millis;
+  uint32_t last_odom_millis;
   uint32_t next_pid_millis;
 };
 

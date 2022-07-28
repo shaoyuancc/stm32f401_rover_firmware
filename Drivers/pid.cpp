@@ -15,10 +15,10 @@ void Pid::reset(){
   derivative_ = 0;
 }
 
-double Pid::compute(double target, double measured){
-  double error;
-  double pid;
-  double clamped_pid;
+float Pid::compute(float target, float measured){
+  float error;
+  float pid;
+  float clamped_pid;
 
   error = target - measured;
   integral_ = std::clamp(integral_ + error, abs_max_val_ * -2 , abs_max_val_ * 2);

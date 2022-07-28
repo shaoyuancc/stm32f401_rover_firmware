@@ -12,6 +12,7 @@
 #include "rover.hpp"
 #include "usbd_cdc_if.h"
 #include "stm32f4xx_hal.h"
+#include "rover_config.h"
 
 extern RoverResources *p_rover_resources;
 extern RoverState rover_state;
@@ -19,41 +20,76 @@ extern RoverState rover_state;
 void run_command(char cmd, char *p_arg1, char *p_arg2){
 
   switch(cmd) {
-    case ENCODERS_RAD_PER_SEC:
+    case ENCODERS_RPM: {
       printf("%c %f %f\n",
-             ENCODERS_RAD_PER_SEC,
-             p_rover_resources->encoder_left.get_rad_per_sec(),
-             p_rover_resources->encoder_right.get_rad_per_sec());
+              ENCODERS_RPM,
+             p_rover_resources->encoder_left.get_rpm(),
+             p_rover_resources->encoder_right.get_rpm());
       break;
-    case MOTORS_RAD_PER_SEC:
-      rover_state.target_rad_per_sec_left = atof(p_arg1);
-      rover_state.target_rad_per_sec_right = atof(p_arg2);
+    }
+    case ENCODERS_VELOCITIES: {
+      uint32_t millis = HAL_GetTick();
+      float dt_microseconds = ((float) (millis - rover_state.last_odom_millis)) / 1000.0;
+      rover_state.last_odom_millis = millis;
+      Kinematics::Rpms current_rpms = Kinematics::Rpms {
+            .motor_left = p_rover_resources->encoder_left.get_rpm(),
+            .motor_right = p_rover_resources->encoder_right.get_rpm()
+      };
+      Kinematics::Velocities current_vels = p_rover_resources->kinematics.get_velocities(current_rpms);
+      printf("%c %f %f %f\n",
+             ENCODERS_VELOCITIES,
+             dt_microseconds,
+             current_vels.linear_x_m_sec,
+             current_vels.angular_z_rad_sec);
+      break;
+    }
+    case MOTORS_RPM: {
+      rover_state.target_rpms = Kinematics::Rpms {
+            .motor_left = (float) atof(p_arg1),
+            .motor_right = (float) atof(p_arg2)
+      };
       rover_state.last_motor_command_millis = HAL_GetTick();
-      if (rover_state.target_rad_per_sec_left == 0 &&
-          rover_state.target_rad_per_sec_right == 0) {
+      if (rover_state.target_rpms.motor_left == 0 &&
+          rover_state.target_rpms.motor_right == 0) {
         stop_and_reset_motors();
       }else{
-        p_rover_resources->pid_left.reset();
-        p_rover_resources->pid_right.reset();
-        rover_state.next_pid_millis = HAL_GetTick();
+        rover_state.next_pid_millis = HAL_GetTick() - PID_INTERVAL_MILLIS;
+        rover_state.motor_control_mode = MotorControlMode::Rpm;
       }
-      rover_state.enable_pid = true;
-      rover_state.is_moving = true;
-      printf("%c OK\n", MOTORS_RAD_PER_SEC);
+      printf("%c OK\n", MOTORS_RPM);
       break;
-    case MOTORS_RAW_PWM:
+    }
+    case MOTORS_RAW_PWM: {
       int16_t arg1 = atoi(p_arg1);
       int16_t arg2 = atoi(p_arg2);
       rover_state.last_motor_command_millis = HAL_GetTick();
-      rover_state.enable_pid = false;
       if (arg1 == 0 && arg2 == 0) {
         stop_and_reset_motors();
+      } else{
+        rover_state.motor_control_mode = MotorControlMode::Pwm;
+        p_rover_resources->motor_left.spin(arg1);
+        p_rover_resources->motor_right.spin(arg2);
       }
-      p_rover_resources->motor_left.spin(arg1);
-      p_rover_resources->motor_right.spin(arg2);
-      rover_state.is_moving = true;
       printf("%c OK %d %d\n", MOTORS_RAW_PWM, arg1, arg2);
       break;
+    }
+    case MOTORS_VELOCITIES: {
+      Kinematics::Velocities target_velocities = Kinematics::Velocities {
+            .linear_x_m_sec = (float) atof(p_arg1),
+            .angular_z_rad_sec = (float) atof(p_arg2)
+      };
+      rover_state.last_motor_command_millis = HAL_GetTick();
+      if (target_velocities.linear_x_m_sec == 0 &&
+          target_velocities.angular_z_rad_sec == 0) {
+        stop_and_reset_motors();
+      } else {
+        rover_state.target_rpms = p_rover_resources->kinematics.get_rpms(target_velocities);
+        rover_state.next_pid_millis = HAL_GetTick() - PID_INTERVAL_MILLIS;
+        rover_state.motor_control_mode = MotorControlMode::Velocity;
+      }
+      printf("%c OK\n", MOTORS_VELOCITIES);
+      break;
+    }
   };
 }
 

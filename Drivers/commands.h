@@ -8,8 +8,10 @@
 #ifndef COMMANDS_H_
 #define COMMANDS_H_
 
-#define ENCODERS_RAD_PER_SEC  'e'
-#define MOTORS_RAD_PER_SEC    'm'
+#define ENCODERS_RPM          'e'
+#define ENCODERS_VELOCITIES   'd'
+#define MOTORS_RPM            'm'
 #define MOTORS_RAW_PWM        'o'
+#define MOTORS_VELOCITIES     't'
 
 #endif /* COMMANDS_H_ */

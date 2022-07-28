@@ -40,7 +40,7 @@ int32_t Encoder::get_position(){
 // this method was called.
 // Note: Ensure that the timer period is much greater than the inter-measurement period,
 // to accurately account for wrap around of timer counter.
-double Encoder::get_rpm(){
+float Encoder::get_rpm(){
   uint32_t curr_count = __HAL_TIM_GET_COUNTER(&timer_handle_) / 4;
   uint32_t curr_time_millis = HAL_GetTick();
   uint32_t delta_time_millis = curr_time_millis - prev_time_millis_;
@@ -48,11 +48,11 @@ double Encoder::get_rpm(){
   if (delta_time_millis == 0)
     return 0.0;
 
-  double delta_time_mins = (double) delta_time_millis / 60000;
+  float delta_time_mins = (float) delta_time_millis / 60000;
 
   // Account for possibility of wrap around
-  double delta_count_direct = (double) curr_count - prev_count_;
-  double delta_count_wrap;
+  float delta_count_direct = (float) curr_count - prev_count_;
+  float delta_count_wrap;
 
   bool did_increase = curr_count > prev_count_;
   if (did_increase) {
@@ -65,9 +65,9 @@ double Encoder::get_rpm(){
 
   // The actual delta should be the smaller delta
   // As long as the timer period is much greater than the inter-measurement period.
-  double delta_count = (did_wrap) ? delta_count_wrap : delta_count_direct;
+  float delta_count = (did_wrap) ? delta_count_wrap : delta_count_direct;
 
-  double rpm = (delta_count/counts_per_revolution_)/delta_time_mins;
+  float rpm = (delta_count/counts_per_revolution_)/delta_time_mins;
 
   prev_time_millis_ = curr_time_millis;
   prev_count_ = curr_count;
@@ -75,9 +75,9 @@ double Encoder::get_rpm(){
   return invert_? -rpm : rpm;
 }
 
-double Encoder::get_rad_per_sec(){
-  double rpm = get_rpm();
-  double rad_per_sec = (rpm * 2 * M_PI) / 60;
+float Encoder::get_rad_per_sec(){
+  float rpm = get_rpm();
+  float rad_per_sec = (rpm * 2 * M_PI) / 60;
   return rad_per_sec;
 }
 
