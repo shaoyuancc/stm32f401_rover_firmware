@@ -19,10 +19,13 @@
 #include "rover.hpp"
 #include "command_processor.hpp"
 #include "usbd_cdc_if.h"
+#include "ys_irtm_ir.hpp"
 
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim4;
+
+extern UART_HandleTypeDef huart1;
 
 RoverResources *p_rover_resources = nullptr;
 
@@ -35,6 +38,17 @@ void stop_and_reset_motors(){
   p_rover_resources->pid_right.reset();
   rover_state.target_rpms = Kinematics::Rpms{0};
   rover_state.motor_control_mode = MotorControlMode::Stopped;
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *uart_handle){
+  // Testing YS-IRTM Receiver
+  if (p_rover_resources){
+    p_rover_resources->ir.print_rx_data();
+    p_rover_resources->ir.receive_data();
+  }
+}
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *uart_handle){
 }
 
 void do_pid(uint32_t millis){
@@ -99,7 +113,8 @@ void start_app(){
 
     .pid_left = Pid(ABS_PWM_MIN, ABS_PWM_MAX, K_P, K_I, K_D),
     .pid_right = Pid(ABS_PWM_MIN, ABS_PWM_MAX, K_P, K_I, K_D),
-    .kinematics = Kinematics(MOTOR_MAX_RPM, WHEEL_DIAMETER_M, LR_WHEELS_DISTANCE_M)
+    .kinematics = Kinematics(MOTOR_MAX_RPM, WHEEL_DIAMETER_M, LR_WHEELS_DISTANCE_M),
+    .ir = YsIrtmIr(&huart1),
   };
 
   p_rover_resources = &resources;
@@ -107,31 +122,41 @@ void start_app(){
   GpioOutputDevice led = GpioOutputDevice(
                             LED_GPIO_Port, LED_Pin, ActiveLow);
 
-  while (1)
-    {
-      if (rover_state.motor_control_mode == Stopped) {
-        led.off();
-        continue;
-      }
+  // Testing YS-IRTM Receiver
+  p_rover_resources->ir.receive_data();
 
-      // Common for all moving states
-      led.on();
-      uint32_t millis = HAL_GetTick();       // TODO: Handle overflow
-      uint32_t time_since_last_command = millis - rover_state.last_motor_command_millis;
-      if (time_since_last_command > AUTO_STOP_INTERVAL_MILLIS) {
-        stop_and_reset_motors();
-        printf("motors timeout\n");
-        continue;
-      }
+  // Testing YS-IRTM
+  uint8_t data [3]={0x00, 0xEF, 0x03};
 
-      if (rover_state.motor_control_mode == Pwm)
-        continue;
+  while (1){
+    // Testing YS-IRTM Transmitter
+//    resources.ir.transmit_data(data);
+//    HAL_Delay(500);
 
-      // For Motor Control Modes Rpm and Velocities
-      if (millis > rover_state.next_pid_millis){
-        do_pid(millis);
-      }
+
+    if (rover_state.motor_control_mode == Stopped) {
+      led.off();
+      continue;
     }
+
+    // Common for all moving states
+    led.on();
+    uint32_t millis = HAL_GetTick();       // TODO: Handle overflow
+    uint32_t time_since_last_command = millis - rover_state.last_motor_command_millis;
+    if (time_since_last_command > AUTO_STOP_INTERVAL_MILLIS) {
+      stop_and_reset_motors();
+      printf("motors timeout\n");
+      continue;
+    }
+
+    if (rover_state.motor_control_mode == Pwm)
+      continue;
+
+    // For Motor Control Modes Rpm and Velocities
+    if (millis > rover_state.next_pid_millis){
+      do_pid(millis);
+    }
+  }
 }
 
 
