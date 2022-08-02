@@ -8,6 +8,8 @@
 #ifndef GPIO_OUTPUT_DEVICE_HPP_
 #define GPIO_OUTPUT_DEVICE_HPP_
 
+#include "stm32f4xx_hal.h"
+
 enum ActiveLogicLevel : uint8_t {
   ActiveLow = 0,
   ActiveHigh = 1

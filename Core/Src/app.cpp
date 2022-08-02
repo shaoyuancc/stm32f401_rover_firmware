@@ -11,15 +11,13 @@
 #include "main.h"
 #include "rover_config.h"
 #include "app.hpp"
-#include "l298n_motor.hpp"
 #include "gpio_output_device.hpp"
-#include "encoder.hpp"
-#include "pid.hpp"
-#include "kinematics.hpp"
 #include "rover.hpp"
 #include "command_processor.hpp"
 #include "usbd_cdc_if.h"
-#include "ys_irtm_ir.hpp"
+
+extern ADC_HandleTypeDef hadc1;
+
 
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
@@ -30,6 +28,8 @@ extern UART_HandleTypeDef huart1;
 RoverResources *p_rover_resources = nullptr;
 
 RoverState rover_state = RoverState {0};
+
+uint32_t adc_val;
 
 void stop_and_reset_motors(){
   p_rover_resources->motor_left.brake();
@@ -115,6 +115,7 @@ void start_app(){
     .pid_right = Pid(ABS_PWM_MIN, ABS_PWM_MAX, K_P, K_I, K_D),
     .kinematics = Kinematics(MOTOR_MAX_RPM, WHEEL_DIAMETER_M, LR_WHEELS_DISTANCE_M),
     .ir = YsIrtmIr(&huart1),
+    .dust = Gp2y1010au0f(DUST_LED_GPIO_Port, DUST_LED_Pin, &hadc1),
   };
 
   p_rover_resources = &resources;
@@ -124,11 +125,15 @@ void start_app(){
 
   // Testing YS-IRTM Receiver
   p_rover_resources->ir.receive_data();
-
-  // Testing YS-IRTM
+  // Testing YS-IRTM Transmitter
   uint8_t data [3]={0x00, 0xEF, 0x03};
 
+
   while (1){
+    // Testing GP2Y1010AU0F
+    adc_val = p_rover_resources->dust.read_dust_raw_blocking();
+    HAL_Delay(100);
+
     // Testing YS-IRTM Transmitter
 //    resources.ir.transmit_data(data);
 //    HAL_Delay(500);

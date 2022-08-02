@@ -13,6 +13,7 @@
 #include "pid.hpp"
 #include "kinematics.hpp"
 #include "ys_irtm_ir.hpp"
+#include "gp2y1010au0f.hpp"
 
 enum MotorControlMode : uint8_t{
   Stopped = 0,
@@ -30,6 +31,7 @@ struct RoverResources{
   Pid pid_right;
   Kinematics kinematics;
   YsIrtmIr ir;
+  Gp2y1010au0f dust;
 };
 
 struct RoverState{
