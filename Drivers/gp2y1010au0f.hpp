@@ -4,7 +4,8 @@
  *  Created on: 2 Aug 2022
  *      Author: Shao Yuan
  */
-
+#undef USE_ADC
+#ifdef USE_ADC
 #ifndef GP2Y1010AU0F_HPP_
 #define GP2Y1010AU0F_HPP_
 
@@ -30,3 +31,4 @@ class Gp2y1010au0f {
 
 
 #endif /* GP2Y1010AU0F_HPP_ */
+#endif

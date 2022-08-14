@@ -31,7 +31,6 @@ struct RoverResources{
   Pid pid_right;
   Kinematics kinematics;
   YsIrtmIr ir;
-  Gp2y1010au0f dust;
 };
 
 struct RoverState{

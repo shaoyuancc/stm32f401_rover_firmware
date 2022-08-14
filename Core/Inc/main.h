@@ -61,10 +61,8 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define LED_Pin GPIO_PIN_13
 #define LED_GPIO_Port GPIOC
-#define DUST_ADC_Pin GPIO_PIN_6
-#define DUST_ADC_GPIO_Port GPIOA
-#define DUST_LED_Pin GPIO_PIN_7
-#define DUST_LED_GPIO_Port GPIOA
+#define LIDAR_MOTOR_Pin GPIO_PIN_3
+#define LIDAR_MOTOR_GPIO_Port GPIOA
 #define M1_L1_Pin GPIO_PIN_12
 #define M1_L1_GPIO_Port GPIOB
 #define M1_L2_Pin GPIO_PIN_13

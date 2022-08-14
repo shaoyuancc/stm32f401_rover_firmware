@@ -16,20 +16,18 @@
 #include "command_processor.hpp"
 #include "usbd_cdc_if.h"
 
-extern ADC_HandleTypeDef hadc1;
-
+#include "MPU9250_WE.h"
 
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim4;
 
 extern UART_HandleTypeDef huart1;
+extern I2C_HandleTypeDef hi2c1;
 
 RoverResources *p_rover_resources = nullptr;
 
 RoverState rover_state = RoverState {0};
-
-uint32_t adc_val;
 
 void stop_and_reset_motors(){
   p_rover_resources->motor_left.brake();
@@ -115,7 +113,6 @@ void start_app(){
     .pid_right = Pid(ABS_PWM_MIN, ABS_PWM_MAX, K_P, K_I, K_D),
     .kinematics = Kinematics(MOTOR_MAX_RPM, WHEEL_DIAMETER_M, LR_WHEELS_DISTANCE_M),
     .ir = YsIrtmIr(&huart1),
-    .dust = Gp2y1010au0f(DUST_LED_GPIO_Port, DUST_LED_Pin, &hadc1),
   };
 
   p_rover_resources = &resources;
@@ -123,20 +120,82 @@ void start_app(){
   GpioOutputDevice led = GpioOutputDevice(
                             LED_GPIO_Port, LED_Pin, ActiveLow);
 
+  GpioOutputDevice lidar_motor = GpioOutputDevice(
+                              LIDAR_MOTOR_GPIO_Port, LIDAR_MOTOR_Pin, ActiveHigh);
+
   // Testing YS-IRTM Receiver
   p_rover_resources->ir.receive_data();
   // Testing YS-IRTM Transmitter
   uint8_t data [3]={0x00, 0xEF, 0x03};
 
+  HAL_Delay(1000);
+  MPU9250_WE myMPU9250 = MPU9250_WE(&hi2c1,0x68);
+
+  if(!myMPU9250.init()){
+    printf("MPU9250 does not respond\n");
+  }
+  else{
+    printf("MPU9250 is connected\n");
+  }
+  if(!myMPU9250.initMagnetometer()){
+    printf("Magnetometer does not respond\n");
+  }
+  else{
+    printf("Magnetometer is connected\n");
+  }
+
+  printf("Position you MPU9250 flat and don't move it - calibrating...\n");
+  HAL_Delay(1000);
+  myMPU9250.autoOffsets();
+  printf("Done!\n");
+
+  myMPU9250.enableGyrDLPF();
+  myMPU9250.setGyrDLPF(MPU9250_DLPF_6);
+  myMPU9250.setSampleRateDivider(5);
+  myMPU9250.setGyrRange(MPU9250_GYRO_RANGE_250);
+  myMPU9250.setAccRange(MPU9250_ACC_RANGE_2G);
+  myMPU9250.enableAccDLPF(true);
+  myMPU9250.setAccDLPF(MPU9250_DLPF_6);
+  myMPU9250.setMagOpMode(AK8963_CONT_MODE_100HZ);
+
+  for (int i = 0; i < 5; i++){
+    xyzFloat gValue = myMPU9250.getGValues();
+    xyzFloat gyr = myMPU9250.getGyrValues();
+    xyzFloat magValue = myMPU9250.getMagValues();
+    float temp = myMPU9250.getTemperature();
+    float resultantG = myMPU9250.getResultantG(gValue);
+
+    printf("Acceleration in g (x,y,z):\n%f\t%f\t%f\tResultant g: %f\n",
+        gValue.x, gValue.y, gValue.z, resultantG);
+
+    printf("Gyroscope data in degrees/s:\n%f\t%f\t%f\n",
+        gyr.x, gyr.y, gyr.z);
+
+    printf("Magnetometer Data in µTesla:\n%f\t%f\t%f\n",
+        magValue.x, magValue.y, magValue.z);
+
+    printf("Temperature in °C: %f\n", temp);
+
+    printf("********************************************\n");
+    HAL_Delay(300);
+
+  }
 
   while (1){
-    // Testing GP2Y1010AU0F
-    adc_val = p_rover_resources->dust.read_dust_raw_blocking();
-    HAL_Delay(100);
+    // Testing MPU9250
+
 
     // Testing YS-IRTM Transmitter
 //    resources.ir.transmit_data(data);
 //    HAL_Delay(500);
+
+    // Testing Mosfet switching circuit
+//    lidar_motor.on();
+//    led.on();
+//    HAL_Delay(2000);
+//    lidar_motor.off();
+//    led.off();
+//    HAL_Delay(2000);
 
 
     if (rover_state.motor_control_mode == Stopped) {

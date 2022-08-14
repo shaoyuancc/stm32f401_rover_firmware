@@ -4,7 +4,8 @@
  *  Created on: 2 Aug 2022
  *      Author: Shao Yuan
  */
-
+#undef USE_ADC
+#ifdef USE_ADC
 #include"gp2y1010au0f.hpp"
 
 uint32_t Gp2y1010au0f::read_dust_raw_blocking(){
@@ -21,4 +22,4 @@ uint32_t Gp2y1010au0f::read_dust_raw_blocking(){
 
   return adc_val;
 }
-
+#endif
